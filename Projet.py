@@ -11,6 +11,12 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.metrics import accuracy_score
 from sklearn import metrics
 from sklearn.neighbors import KNeighborsClassifier
+from sklearn import svm
+
+from sklearn.neural_network import MLPClassifier
+from sklearn.gaussian_process import GaussianProcessClassifier
+from sklearn.gaussian_process.kernels import RBF
+
 
 import matplotlib.pyplot as plt
 import matplotlib.image as im
@@ -18,6 +24,8 @@ import matplotlib.image as im
 x = pd.read_csv('./50signDataset/GT-00002.csv', sep='\;')
 y = pd.read_csv('./30signDataset/GT-00001.csv', sep=';')
 w = pd.read_csv('./60signDataset/GT-00003.csv', sep=';')
+z = pd.read_csv('./70signDataset/GT-00004.csv', sep=';')
+v = pd.read_csv('./80signDataset/GT-00005.csv', sep=';')
 
 nameOne = y.Filename
 is30Sign = y.ClassId
@@ -28,6 +36,11 @@ is50Sign = x.ClassId
 nameThree = w.Filename
 is60Sign = w.ClassId
 
+nameFour = z.Filename
+is70Sign = z.ClassId
+
+nameFive = v.Filename
+is80Sign = v.ClassId
 
 tabIThirty = np.zeros([2220,55*57])
 tabClassIdThirty = np.zeros([2220,1])
@@ -41,9 +54,6 @@ for i in range(1,2220) :
 
     tabIThirty[i,:] = IgrayOne.reshape(IgrayOne.shape[0]*IgrayOne.shape[1])
     
-K=tabIThirty[1,:].reshape([55,57])
-plt.imshow(K)
-
 tabIFifty = np.zeros([2220,55*57])
 tabClassIdFifty= np.zeros([2220,1])
 
@@ -67,55 +77,56 @@ for i in range(1,1410) :
     IgrayThree=cv2.resize(IgrayThree,(57,55),interpolation = cv2.INTER_AREA)
 
     tabISixty[i,:] = IgrayThree.reshape(IgrayThree.shape[0]*IgrayThree.shape[1])
+    
+tabISeventy = np.zeros([1410,55*57])
+tabClassIdSeventy= np.zeros([1410,1])
+
+for i in range(1,1410) :
+    N=im.imread("70signDataset/" + nameFour[i])
+    tabClassIdSeventy[i] = is70Sign[i]
+    
+    IgrayFour=cv2.cvtColor(N, cv2.COLOR_BGR2GRAY)
+    IgrayFour=cv2.resize(IgrayFour,(57,55),interpolation = cv2.INTER_AREA)
+
+    tabISeventy[i,:] = IgrayFour.reshape(IgrayFour.shape[0]*IgrayFour.shape[1])
+    
+tabIEighty = np.zeros([1860,55*57])
+tabClassIdEigthy= np.zeros([1860,1])
+
+for i in range(1,1860) :
+    O=im.imread("80signDataset/" + nameFive[i])
+    tabClassIdEigthy[i] = is80Sign[i]
+    
+    IgrayFive=cv2.cvtColor(O, cv2.COLOR_BGR2GRAY)
+    IgrayFive=cv2.resize(IgrayFive,(57,55),interpolation = cv2.INTER_AREA)
+
+    tabIEighty[i,:] = IgrayFive.reshape(IgrayFive.shape[0]*IgrayFive.shape[1])
+    
+K=tabIThirty[1,:].reshape([55,57])
+
+L=tabIFifty[1,:].reshape([55,57])
 
 M=tabISixty[1,:].reshape([55,57])
-plt.imshow(M)
 
-tabIThirty = pd.DataFrame(tabIThirty)
+N=tabIFifty[1,:].reshape([55,57])
+
+O=tabISixty[1,:].reshape([55,57])
+
+plt.imshow(K)
+
+final30SignTab = pd.DataFrame(tabIThirty)
 tabClassIdThirty = pd.DataFrame(tabClassIdThirty)
 
-print(type(tabIThirty))
-print(type(tabClassIdThirty))
-
-final30SignTab = tabIThirty
-
-tabIFifty = pd.DataFrame(tabIFifty)
+final50SignTab = pd.DataFrame(tabIFifty)
 tabClassIdFifty = pd.DataFrame(tabClassIdFifty)
 
-print(tabIFifty.shape)
-print(tabIThirty.shape)
+final60SignTab = pd.DataFrame(tabISixty)
+tabClassIdSixty = pd.DataFrame(tabClassIdSixty)
 
-final50SignTab = tabIFifty
+final70SignTab = pd.DataFrame(tabISeventy)
+tabClassIdSeventy = pd.DataFrame(tabClassIdSeventy)
 
-finalClassIdTab = pd.concat([tabClassIdThirty,tabClassIdFifty])
+final80SignTab = pd.DataFrame(tabIEighty)
+tabClassIdEigthy = pd.DataFrame(tabClassIdEigthy)
 
-print(final50SignTab.shape)
-print(finalClassIdTab.shape)
-#print(type(final50SignTab))
-
-finalTotalTab = pd.concat([final50SignTab,final30SignTab], ignore_index=True)
-finalTotalTab.shape
-
-xtrain, xtest, ytrain, ytest = train_test_split(finalTotalTab, finalClassIdTab, test_size=0.35, random_state=42)
-
-print(xtrain.shape)
-print(ytrain.shape)
-print('pourcentage:' ,xtrain.shape[0]/finalTotalTab.shape[0])
-
-
-Arbre_decision = DecisionTreeClassifier(random_state=0, max_depth=20)
-
-clf = Arbre_decision.fit(xtrain, ytrain)
-
-
-ypredit = clf.predict(xtest)
-accuracy_score(ytest, ypredit)
-
-
-print(metrics.confusion_matrix(ytest, ypredit))
-
-KNN = KNeighborsClassifier()
-clf = KNN .fit(xtrain, ytrain)
-ypredit = clf.predict(xtest)
-accuracy_score(ytest, ypredit)
-print(metrics.confusion_matrix(ytest, ypredit))
+finalClassIdTab = pd.concat([tabClassIdThirty,tabClassIdFifty,tabClassIdSixty,tabClassIdSeventy,tabClassIdEigthy])
